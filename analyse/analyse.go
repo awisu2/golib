@@ -12,21 +12,31 @@ const (
 	PATTERN_TYPE_VALUE
 )
 
+const (
+	VALUE_PATTERN_TYPE_HTML = iota
+	VALUE_PATTERN_TYPE_TEXT
+	VALUE_PATTERN_TYPE_ATTR
+)
+
 type Pattern struct {
-	Type int // PATTERN_TYPE
-	BasePattern
-	From     string
-	Patterns []BasePattern
+	Type        int // PATTERN_TYPE
+	Pattern     string
+	To          string
+	From        string
+	ValPatterns []ValPattern
 }
 
-type BasePattern struct {
+type ValPattern struct {
 	Pattern string
 	To      string
+	ValType int
+	Attr    string
 }
 
+// 複数または単数のデータを持たせるためこういう構造体にする
 type Data struct {
-	Val    string
-	Childs []Datas
+	Val  string
+	Vals []map[string]string
 }
 
 type Datas map[string]Data
@@ -42,22 +52,12 @@ func NewDocumentFromString(str string) (document *goquery.Document, err error) {
 	return
 }
 
-func TestAnalyse(document *goquery.Document, patterns []string) (ss map[string]*goquery.Selection) {
-	ps := []*Pattern{
-		&Pattern{PATTERN_TYPE_FIND, BasePattern{"body", "body"}, "", nil},
-		&Pattern{PATTERN_TYPE_FIND, BasePattern{".work_table_data", "items"}, "body", nil},
-		&Pattern{PATTERN_TYPE_FIND, BasePattern{".work_name", "item"}, "", nil},
-		&Pattern{PATTERN_TYPE_VALUE, BasePattern{"", "items"}, "items", []BasePattern{
-			BasePattern{".work_name", "name"},
-		}},
-	}
-	fmt.Println(ps)
-
+func TestAnalyse(document *goquery.Document, patterns []Pattern) (ss map[string]*goquery.Selection) {
 	datas := Datas{}
 	fmt.Println(datas)
 
 	ss = map[string]*goquery.Selection{}
-	for i, p := range ps {
+	for i, p := range patterns {
 		switch p.Type {
 		case PATTERN_TYPE_FIND:
 			{
@@ -78,18 +78,26 @@ func TestAnalyse(document *goquery.Document, patterns []string) (ss map[string]*
 				}
 
 				// TODO:複数じゃないパターンもあるよ
-				datass := []Datas{}
+				data := Data{}
 				s.Each(func(i int, s *goquery.Selection) {
-					for _, p2 := range p.Patterns {
-						ds := Datas{}
-						// TODO取得方法をAttrとかその他諸々にも対応
-						val, _ := s.Find(p2.Pattern).Html()
-						ds[p2.To] = Data{Val: val}
+					d := map[string]string{}
+					for _, p2 := range p.ValPatterns {
+						v := ""
+						switch p2.ValType {
+						case VALUE_PATTERN_TYPE_HTML:
+							v, _ = s.Find(p2.Pattern).Html()
+						case VALUE_PATTERN_TYPE_TEXT:
+							v = s.Find(p2.Pattern).Text()
+						case VALUE_PATTERN_TYPE_ATTR:
+							// TODO:Attr名が欲しい
+							v, _ = s.Find(p2.Pattern).Attr(p2.Attr)
+						}
 
-						datass = append(datass, ds)
+						d[p2.To] = v
 					}
+					data.Vals = append(data.Vals, d)
 				})
-				datas[p.To] = Data{Childs: datass}
+				datas[p.To] = data
 			}
 		}
 	}

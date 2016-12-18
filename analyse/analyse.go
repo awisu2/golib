@@ -1,6 +1,7 @@
 package analyse
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"strings"
@@ -130,5 +131,28 @@ func Array(selection *goquery.Selection) (arr []*goquery.Selection) {
 	selection.Each(func(i int, s *goquery.Selection) {
 		arr = append(arr, s)
 	})
+	return
+}
+
+func JsonToPatterns(s string) (patterns []Pattern, err error) {
+	dec := json.NewDecoder(strings.NewReader(s))
+
+	// read open bracket
+	t, err := dec.Token()
+	if err != nil {
+		return
+	}
+	fmt.Printf("Foo %T: %v\n", t, t)
+
+	// while the array contains values
+
+	for dec.More() {
+		var pattern Pattern
+		err = dec.Decode(&pattern)
+		if err != nil {
+			return
+		}
+		patterns = append(patterns, pattern)
+	}
 	return
 }

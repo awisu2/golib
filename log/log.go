@@ -11,7 +11,7 @@ func Errorf(v ...interface{}) (err error) {
 	caller := getCaller()
 
 	s := fmt.Sprint(v...)
-	log.Println(s + " " + caller)
+	log.Println("Error : " + s + " " + caller)
 
 	err = fmt.Errorf("%v", s)
 	return

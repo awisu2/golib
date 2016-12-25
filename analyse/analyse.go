@@ -34,13 +34,21 @@ type ValPattern struct {
 	Attr    string
 }
 
+type val map[string]string
+
 // 複数または単数のデータを持たせるためこういう構造体にする
 type Data struct {
-	Val  string
-	Vals []map[string]string
+	Vals []val
 }
 
-type Datas map[string]Data
+func (self *Data) Val() val {
+	if self.Vals == nil {
+		self.Vals = []val{}
+	}
+	return self.Vals[0]
+}
+
+type Datas map[string]*Data
 
 // 文字列からDocumentを取得する
 func NewDocumentFromString(str string) (document *goquery.Document, err error) {
@@ -53,11 +61,9 @@ func NewDocumentFromString(str string) (document *goquery.Document, err error) {
 	return
 }
 
-func TestAnalyse(document *goquery.Document, patterns []Pattern) (ss map[string]*goquery.Selection) {
-	datas := Datas{}
-	fmt.Println(datas)
-
+func TestAnalyse(document *goquery.Document, patterns []Pattern) (ss map[string]*goquery.Selection, datas Datas) {
 	ss = map[string]*goquery.Selection{}
+	datas = Datas{}
 	for i, p := range patterns {
 		switch p.Type {
 		case PATTERN_TYPE_FIND:
@@ -79,7 +85,7 @@ func TestAnalyse(document *goquery.Document, patterns []Pattern) (ss map[string]
 				}
 
 				// TODO:複数じゃないパターンもあるよ
-				data := Data{}
+				data := &Data{}
 				s.Each(func(i int, s *goquery.Selection) {
 					d := map[string]string{}
 					for _, p2 := range p.ValPatterns {
@@ -102,11 +108,7 @@ func TestAnalyse(document *goquery.Document, patterns []Pattern) (ss map[string]
 			}
 		}
 	}
-	fmt.Println(datas["items"])
 
-	//	selections := document.Find(".work_2col_table")
-	//
-	//	sss = append(sss, selections)
 	return
 }
 
@@ -134,15 +136,15 @@ func Array(selection *goquery.Selection) (arr []*goquery.Selection) {
 	return
 }
 
+// jsonをanalyse用のpatternに変換する
 func JsonToPatterns(s string) (patterns []Pattern, err error) {
 	dec := json.NewDecoder(strings.NewReader(s))
 
 	// read open bracket
-	t, err := dec.Token()
+	_, err = dec.Token()
 	if err != nil {
 		return
 	}
-	fmt.Printf("Foo %T: %v\n", t, t)
 
 	// while the array contains values
 

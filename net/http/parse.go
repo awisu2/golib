@@ -8,7 +8,7 @@ import (
 
 func Parse(w http.ResponseWriter, r *http.Request) *Session {
 	pathes, queries := ConvertQueries(r)
-	return &Session{w, r, pathes, queries}
+	return &Session{Writer: w, Request: r, Pathes: pathes, Queries: queries}
 }
 
 // http.Requestを利用しやすく解析

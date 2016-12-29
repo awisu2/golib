@@ -2,6 +2,7 @@ package db
 
 import (
 	_sql "database/sql"
+	"fmt"
 	"github.com/awisu2/golib/db/table"
 	"github.com/awisu2/golib/log"
 )
@@ -25,6 +26,7 @@ type sql struct {
 	Deleted_at   []string
 	Created_at   []string
 	UseTableInfo bool
+	Security     *security
 }
 
 type where struct {
@@ -43,6 +45,11 @@ type limit struct {
 	rowcount int
 }
 
+// 通常まずそうな処理を防止するフラグ
+type security struct {
+	CanNoWhereUpdateOrDelete bool // update,deleteをするときにwhereがないことを許容(default: false)
+}
+
 // table操作Interface
 type tableInterface interface {
 	// テーブル名を指定しTable.Infoを返却
@@ -59,7 +66,7 @@ func SetTable(t tableInterface) {
 }
 
 func NewSql() *sql {
-	return &sql{column: "*", UseTableInfo: true}
+	return &sql{column: "*", UseTableInfo: true, Security: &security{CanNoWhereUpdateOrDelete: false}}
 }
 
 // select時の取得columnを設定
@@ -126,8 +133,8 @@ func (self *sql) Set(column string, value interface{}) *sql {
 }
 
 // insertまたはupdate用の値を複数セット
-func (self *sql) SetValues(sets map[string]interface{}) *sql {
-	for column, value := range sets {
+func (self *sql) SetValues(vals map[string]interface{}) *sql {
+	for column, value := range vals {
 		self.Set(column, value)
 	}
 	return self
@@ -164,6 +171,14 @@ func (self *sql) SelectRow(table string, db *DB) (data RowData, err error) {
 
 // Update実行
 func (self *sql) Update(table string, db *DB) (result _sql.Result, err error) {
+	// check where exist
+	if self.Security.CanNoWhereUpdateOrDelete == false {
+		if self.Wheres == nil || len(self.Wheres) == 0 {
+			err = fmt.Errorf("no where by Update.")
+			return
+		}
+	}
+
 	query, args := self.QueryUpdate(table)
 	result, err = db.Exec(query, args...)
 	if err != nil {
@@ -195,12 +210,34 @@ func (self *sql) Inserts(tableName string, db *DB, vals []map[string]interface{}
 
 // Delete実行
 func (self *sql) Delete(tableName string, db *DB, isForce bool) (result _sql.Result, err error) {
+	// check where exist
+	if self.Security.CanNoWhereUpdateOrDelete == false {
+		if self.Wheres == nil || len(self.Wheres) == 0 {
+			err = fmt.Errorf("no where by Delete.")
+			return
+		}
+	}
+
 	var query string
 	var args []interface{}
 	if isForce {
 		query, args = self.QueryForceDelete(tableName)
 	} else {
 		query, args = self.QueryDelete(tableName)
+	}
+	result, err = db.Exec(query, args...)
+	if err != nil {
+		return
+	}
+	return
+}
+
+// deleted_atを設定している場合に有効
+func (self *sql) UnDelete(tableName string, db *DB) (result _sql.Result, err error) {
+	query, args := self.QueryUnDelete(tableName)
+	if query == "" {
+		err = fmt.Errorf("no deleted_at column.")
+		return
 	}
 	result, err = db.Exec(query, args...)
 	if err != nil {
@@ -251,4 +288,19 @@ func TruncateTable(tableName string, db *DB) (result _sql.Result, err error) {
 // テーブル削除
 func DropTable(tableName string, db *DB) (result _sql.Result, err error) {
 	return Exec(QueryDrop(tableName), db)
+}
+
+// レコードの存在チェック
+func IsExist(tableName string, name string, value interface{}, db *DB) bool {
+	rows, err := db.Query(NewSql().Column("id").Where(name, value).QuerySelect(tableName))
+	if err != nil {
+		return false
+	}
+	defer rows.Close()
+
+	if !rows.Next() {
+		return false
+	}
+
+	return true
 }

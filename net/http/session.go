@@ -5,17 +5,15 @@ import (
 	"net/http"
 )
 
-type Queries map[string]string
-type Pathes []string
-
 // *http.Requestから取得できる値をまとめた構造体
 type Session struct {
-	Writer  http.ResponseWriter
-	Request *http.Request
-	Pathes  Pathes
-	Queries Queries
-	DBs     map[string]*db.DB
-	Any     map[string]interface{}
+	Writer    http.ResponseWriter
+	Request   *http.Request
+	Pathes    []string
+	Queries   map[string]string
+	Querieses map[string][]string
+	DBs       map[string]*db.DB
+	Any       map[string]interface{}
 }
 
 // リダイレクト
@@ -89,4 +87,17 @@ func (self *Session) GetAny(k string) (v interface{}) {
 	}
 	v, _ = self.Any[k]
 	return
+}
+
+func (self *Session) GetArrayByQueries(key string) []string {
+	array, ok := self.Querieses[key]
+	if ok {
+		return array
+	}
+
+	v, ok := self.Queries[key]
+	if ok {
+		return []string{v}
+	}
+	return []string{}
 }

@@ -222,7 +222,6 @@ func (self *sql) QueryDelete(tableName string) (query string, args []interface{}
 	args = []interface{}{}
 
 	for _, field := range info.Fields {
-		fmt.Println("abc", field)
 		if field.AutoTime == table.AUTO_TIME_DELETE {
 			isDelete = true
 			q += ", " + field.Name + "=?"
@@ -242,7 +241,38 @@ func (self *sql) QueryDelete(tableName string) (query string, args []interface{}
 	query += whereQuery
 	args = append(args, whereArgs...)
 
-	fmt.Println(query)
+	return
+}
+
+func (self *sql) QueryUnDelete(tableName string) (query string, args []interface{}) {
+	args = []interface{}{}
+
+	// table.Infoの取得
+	var info *table.Info
+	if self.UseTableInfo && _table != nil {
+		info = _table.GetInfo(tableName)
+	}
+	if info == nil {
+		return
+	}
+
+	// deleteカラム
+	q := ""
+	for _, field := range info.Fields {
+		if field.AutoTime == table.AUTO_TIME_DELETE {
+			q += ", " + field.Name + "=?"
+			args = append(args, nil)
+		}
+	}
+	query += " SET " + q[2:]
+
+	// where
+	whereQuery, whereArgs := self.QueryWhere()
+	query += whereQuery
+	args = append(args, whereArgs...)
+
+	query = "UPDATE " + tableName + query
+
 	return
 }
 

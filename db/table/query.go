@@ -106,8 +106,11 @@ func (self *Info) QueryCreateTable() (query string) {
 			query += " (" + strconv.Itoa(field.Length) + ")"
 		}
 
-		if !field.IsNull {
-			query += " NOT NULL"
+		// null setting
+		if field.AutoTime != AUTO_TIME_DELETE {
+			if !field.IsNull {
+				query += " NOT NULL"
+			}
 		}
 
 		if field.Name == "id" {

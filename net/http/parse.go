@@ -7,12 +7,12 @@ import (
 )
 
 func Parse(w http.ResponseWriter, r *http.Request) *Session {
-	pathes, queries := ConvertQueries(r)
-	return &Session{Writer: w, Request: r, Pathes: pathes, Queries: queries}
+	pathes, queries, querieses := ConvertQueries(r)
+	return &Session{Writer: w, Request: r, Pathes: pathes, Queries: queries, Querieses: querieses}
 }
 
 // http.Requestを利用しやすく解析
-func ConvertQueries(r *http.Request) (pathes Pathes, queries Queries) {
+func ConvertQueries(r *http.Request) (pathes []string, queries map[string]string, querieses map[string][]string) {
 
 	// pathを分解して取得
 	pathes = make([]string, 10) // 取得後にいちいちlenチェックをしたくないので十分な量を用意
@@ -23,7 +23,7 @@ func ConvertQueries(r *http.Request) (pathes Pathes, queries Queries) {
 
 	// rawqueryを分解して取得
 	rawquery := r.URL.RawQuery
-	queries = make(map[string]string)
+	queries = map[string]string{}
 	if rawquery != "" {
 		rawquery, _ = url.QueryUnescape(rawquery)
 		raws := strings.Split(rawquery, "&")
@@ -37,10 +37,14 @@ func ConvertQueries(r *http.Request) (pathes Pathes, queries Queries) {
 
 	// formからの情報をマージ
 	err := r.ParseForm()
+	querieses = map[string][]string{}
 	if err == nil {
 		for k, v := range r.Form {
-			queries[k] = string(v[0])
-			//TODO:select、radioで複数の値が飛んでくる場合は別途
+			if len(v) == 1 {
+				queries[k] = string(v[0])
+			} else {
+				querieses[k] = v
+			}
 		}
 	}
 

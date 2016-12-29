@@ -43,7 +43,7 @@ func getCaller(num int) string {
 	s := ""
 	pc, file, line, ok := runtime.Caller(num)
 	if ok {
-		s = " " + fmt.Sprintf("[%v]%v:%v", pc, file, line)
+		s = fmt.Sprintf("[%v]%v:%v", pc, file, line)
 	}
 	return s
 }
@@ -55,7 +55,7 @@ func getCallers(length int) (s string) {
 		if _s == "" {
 			break
 		}
-		s += "\n" + strconv.Itoa(i) + " : " + _s
+		s += "\n" + strconv.Itoa(i) + ":" + _s
 	}
 	if len(s) > 0 {
 		s = s[1:]

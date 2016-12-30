@@ -13,7 +13,19 @@ const (
 )
 
 const (
+	JOIN_TYPE_INNER = iota + 1
+	JOIN_TYPE_LEFT
+	JOIN_TYPE_RIGHT
+	JOIN_TYPE_FULL
+)
+
+const (
 	LIMIT_OFFSET_NON = -1
+)
+
+const (
+	WHERE_TYPE_EQUAL = iota
+	WHERE_TYPE_IN
 )
 
 type sql struct {
@@ -22,17 +34,16 @@ type sql struct {
 	Orders       []*order
 	limit        *limit
 	Sets         map[string]interface{}
-	Updated_at   []string
-	Deleted_at   []string
-	Created_at   []string
 	UseTableInfo bool
+	Joins        []*Join
+	GroupBy      string
 	Security     *security
 }
 
 type where struct {
-	Name      string
-	WhereType string
-	Value     interface{}
+	Name  string
+	Type  int
+	Value interface{}
 }
 
 type order struct {
@@ -43,6 +54,13 @@ type order struct {
 type limit struct {
 	offset   int
 	rowcount int
+}
+
+type Join struct {
+	Table string
+	Alias string
+	Type  int
+	On    string
 }
 
 // 通常まずそうな処理を防止するフラグ
@@ -81,7 +99,16 @@ func (self *sql) Where(name string, value interface{}) *sql {
 	if self.Wheres == nil {
 		self.Wheres = []*where{}
 	}
-	self.Wheres = append(self.Wheres, &where{name, "", value})
+	self.Wheres = append(self.Wheres, &where{name, int(WHERE_TYPE_EQUAL), value})
+	return self
+}
+
+// whereの設定
+func (self *sql) WhereIn(name string, value interface{}) *sql {
+	if self.Wheres == nil {
+		self.Wheres = []*where{}
+	}
+	self.Wheres = append(self.Wheres, &where{name, int(WHERE_TYPE_IN), value})
 	return self
 }
 
@@ -123,6 +150,11 @@ func (self *sql) LimitRowcount(rowcount int) *sql {
 	return self.Limit(LIMIT_OFFSET_NON, rowcount)
 }
 
+func (self *sql) Group(group string) *sql {
+	self.GroupBy = group
+	return self
+}
+
 // insertまたはupdate用の値をセット
 func (self *sql) Set(column string, value interface{}) *sql {
 	if self.Sets == nil {
@@ -140,6 +172,18 @@ func (self *sql) SetValues(vals map[string]interface{}) *sql {
 	return self
 }
 
+// join分用
+func (self *sql) Join(join *Join) *sql {
+	if join == nil {
+		return self
+	}
+	if self.Joins == nil {
+		self.Joins = []*Join{}
+	}
+	self.Joins = append(self.Joins, join)
+	return self
+}
+
 // select実行
 func (self *sql) Select(table string, db *DB) (datas []RowData, err error) {
 	query, args := self.QuerySelect(table)
@@ -150,6 +194,19 @@ func (self *sql) Select(table string, db *DB) (datas []RowData, err error) {
 	defer rows.Close()
 
 	datas, err = RowsToDatas(rows)
+	return
+}
+
+// map形式にして取得
+func (self *sql) SelectToMap(table string, db *DB) (datas map[string]RowData, err error) {
+	query, args := self.QuerySelect(table)
+	rows, err := db.Query(query, args...)
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+
+	datas, err = RowsToMap(rows)
 	return
 }
 

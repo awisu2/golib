@@ -3,16 +3,21 @@ package db
 import (
 	"fmt"
 	"github.com/awisu2/golib/db/table"
+	"strings"
 )
 
 func (self *sql) QuerySelect(tableName string) (query string, args []interface{}) {
 	args = []interface{}{}
+
+	// join
+	query += self.QueryJoin()
 
 	// where
 	whereQuery, whereArgs := self.QueryWhere()
 	query += whereQuery
 	args = append(args, whereArgs...)
 
+	query += self.QueryGroup()
 	query += self.QueryOrder()
 	query += self.QueryLimit()
 
@@ -130,14 +135,60 @@ func (self *sql) QueryUpdate(tableName string) (query string, args []interface{}
 	return
 }
 
+// joinクエリ作成
+func (self *sql) QueryJoin() (query string) {
+	if self.Joins == nil {
+		return
+	}
+
+	for _, join := range self.Joins {
+		switch join.Type {
+		case JOIN_TYPE_INNER:
+			query += " INNER JOIN "
+		case JOIN_TYPE_LEFT:
+			query += " LEFT OUTER JOIN "
+		case JOIN_TYPE_RIGHT:
+			query += " RIGHT OUTER JOIN "
+		case JOIN_TYPE_FULL:
+			query += " FULL OUTER JOIN "
+		}
+		query += join.Table
+		if join.Alias != "" {
+			query += " AS " + join.Alias
+		}
+		if join.On != "" {
+			query += " ON " + join.On
+		}
+	}
+	return
+}
+
 func (self *sql) QueryWhere() (query string, args []interface{}) {
 	if self.Wheres != nil {
 		q := ""
 		for _, v := range self.Wheres {
-			q += " AND " + v.Name + " = ? "
-			args = append(args, v.Value)
+			if v.Value == nil {
+				q += " AND " + v.Name + " IS NULL"
+			} else {
+				switch v.Type {
+				case WHERE_TYPE_EQUAL:
+					q += " AND " + v.Name + " = ?"
+					args = append(args, v.Value)
+				case WHERE_TYPE_IN:
+					arr, ok := v.Value.([]interface{})
+					if ok && len(arr) > 0 {
+						q += " AND " + v.Name + " IN(" + strings.Repeat(",?", len(arr))[1:] + ")"
+						args = append(args, arr...)
+					} else {
+						q += " AND " + v.Name + " IN(?)"
+						args = append(args, "NULL")
+					}
+				}
+			}
 		}
-		query += " WHERE " + q[5:]
+		if q != "" {
+			query += " WHERE " + q[5:]
+		}
 	}
 	return
 }
@@ -155,6 +206,13 @@ func (self *sql) QueryOrder() (query string) {
 			}
 		}
 		query += " ORDER BY " + q[2:]
+	}
+	return
+}
+
+func (self *sql) QueryGroup() (query string) {
+	if self.GroupBy != "" {
+		query = " GROUP BY " + self.GroupBy
 	}
 	return
 }

@@ -34,6 +34,39 @@ func RowsToDatas(rows *_sql.Rows) (datas []RowData, err error) {
 	return
 }
 
+// Rowsから値を取得
+func RowsToMap(rows *_sql.Rows) (datas map[string]RowData, err error) {
+	// Scan対象をしぼるためカラム情報の取得
+	columns, _ := rows.Columns()
+	count := len(columns)
+	ptrs := make([]interface{}, count)
+
+	datas = map[string]RowData{}
+	for rows.Next() {
+		vals := make([]_sql.NullString, count)
+		for i, _ := range columns {
+			ptrs[i] = &vals[i]
+		}
+		err := rows.Scan(ptrs...)
+		if err != nil {
+			return nil, err
+		}
+
+		// マップに登録しなおす
+		data := RowData{}
+		id := ""
+		for i, name := range columns {
+			data[name] = NullString(vals[i])
+			// TODO:id以外のキーに対応
+			if name == "id" {
+				id = vals[i].String
+			}
+		}
+		datas[id] = data
+	}
+	return
+}
+
 func (self RowData) Get(key string) NullString {
 	v, ok := self[key]
 	if !ok {

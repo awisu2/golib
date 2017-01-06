@@ -35,15 +35,15 @@ func RowsToDatas(rows *_sql.Rows) (datas []RowData, err error) {
 }
 
 // Rowsから値を取得
-func RowsToMap(rows *_sql.Rows) (datas map[string]RowData, err error) {
+func RowsToMap(rows *_sql.Rows) (datas map[string]map[string]string, err error) {
 	// Scan対象をしぼるためカラム情報の取得
 	columns, _ := rows.Columns()
 	count := len(columns)
 	ptrs := make([]interface{}, count)
 
-	datas = map[string]RowData{}
+	datas = map[string]map[string]string{}
 	for rows.Next() {
-		vals := make([]_sql.NullString, count)
+		vals := make([]interface{}, count)
 		for i, _ := range columns {
 			ptrs[i] = &vals[i]
 		}
@@ -53,16 +53,45 @@ func RowsToMap(rows *_sql.Rows) (datas map[string]RowData, err error) {
 		}
 
 		// マップに登録しなおす
-		data := RowData{}
+		data := map[string]string{}
 		id := ""
 		for i, name := range columns {
-			data[name] = NullString(vals[i])
+			data[name] = ConvertValToString(vals[i])
+
 			// TODO:id以外のキーに対応
 			if name == "id" {
-				id = vals[i].String
+				id = data[name]
 			}
 		}
 		datas[id] = data
+	}
+	return
+}
+
+// Rowsから値を取得
+func RowsToString(rows *_sql.Rows) (datas []map[string]string, err error) {
+	// Scan対象をしぼるためカラム情報の取得
+	columns, _ := rows.Columns()
+	count := len(columns)
+	ptrs := make([]interface{}, count)
+
+	datas = []map[string]string{}
+	for rows.Next() {
+		vals := make([]interface{}, count)
+		for i, _ := range columns {
+			ptrs[i] = &vals[i]
+		}
+		err := rows.Scan(ptrs...)
+		if err != nil {
+			return nil, err
+		}
+
+		// マップに登録しなおす
+		data := map[string]string{}
+		for i, name := range columns {
+			data[name] = ConvertValToString(vals[i])
+		}
+		datas = append(datas, data)
 	}
 	return
 }
@@ -95,4 +124,21 @@ func (self RowData) Int(key string, def int) int {
 	}
 
 	return i
+}
+
+// interfaceを文字列に変換
+func ConvertValToString(val interface{}) string {
+	v, ok := val.([]byte)
+	if ok {
+		str := string(v)
+		return str
+	}
+
+	i, ok := val.(int64)
+	if ok {
+		return strconv.FormatInt(i, 10)
+	}
+
+	// 上記以外ではnilのはず
+	return ""
 }

@@ -2,6 +2,7 @@ package db
 
 import (
 	_sql "database/sql"
+	"github.com/awisu2/golib/log"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -24,6 +25,7 @@ func Open(host string, database string) (*DB, error) {
 
 // dbコネクションをクローズ
 func (self *DB) Close() (err error) {
+	log.Println("DB Close " + self.Host + "/" + self.Database)
 	return self.DB.Close()
 }
 

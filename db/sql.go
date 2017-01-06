@@ -185,7 +185,7 @@ func (self *sql) Join(join *Join) *sql {
 }
 
 // select実行
-func (self *sql) Select(table string, db *DB) (datas []RowData, err error) {
+func (self *sql) Select(table string, db *DB) (datas []map[string]string, err error) {
 	query, args := self.QuerySelect(table)
 	rows, err := db.Query(query, args...)
 	if err != nil {
@@ -193,12 +193,12 @@ func (self *sql) Select(table string, db *DB) (datas []RowData, err error) {
 	}
 	defer rows.Close()
 
-	datas, err = RowsToDatas(rows)
+	datas, err = RowsToString(rows)
 	return
 }
 
 // map形式にして取得
-func (self *sql) SelectToMap(table string, db *DB) (datas map[string]RowData, err error) {
+func (self *sql) SelectToMap(table string, db *DB) (datas map[string]map[string]string, err error) {
 	query, args := self.QuerySelect(table)
 	rows, err := db.Query(query, args...)
 	if err != nil {
@@ -207,6 +207,19 @@ func (self *sql) SelectToMap(table string, db *DB) (datas map[string]RowData, er
 	defer rows.Close()
 
 	datas, err = RowsToMap(rows)
+	return
+}
+
+// select実行
+func (self *sql) SelectToNullString(table string, db *DB) (datas []RowData, err error) {
+	query, args := self.QuerySelect(table)
+	rows, err := db.Query(query, args...)
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+
+	datas, err = RowsToDatas(rows)
 	return
 }
 

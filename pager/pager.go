@@ -5,7 +5,7 @@ import (
 )
 
 type Pager struct {
-	PerCount      int    // content count per page
+	PerPage       int    // content count per page
 	ItemNum       int    // display item num
 	FormatPage    Format // default func(page string) string { return page }
 	FormatCurrent Format // default is same FormatPage
@@ -21,15 +21,15 @@ type Pager struct {
 type Format func(page string) string
 type FormatWrap func(pagerStr string) string
 
-func NewInstance(perCount int, itemNum int) *Pager {
-	if perCount < 1 {
-		perCount = 1
+func NewInstance(perPage int, itemNum int) *Pager {
+	if perPage < 1 {
+		perPage = 1
 	}
 	if itemNum < 1 {
 		itemNum = 1
 	}
 	return &Pager{
-		PerCount:   perCount,
+		PerPage:    perPage,
 		ItemNum:    itemNum,
 		FormatPage: func(page string) string { return page },
 	}
@@ -113,7 +113,7 @@ func (self *Pager) Create(page int, allCount int) string {
 
 // get page infos
 func (self *Pager) getPageInfos(page int, allCount int) (allPage int, minPage int, maxPage int) {
-	allPage = ((allCount - 1) / self.PerCount) + 1
+	allPage = ((allCount - 1) / self.PerPage) + 1
 
 	// ページの補正
 	if page < 1 {

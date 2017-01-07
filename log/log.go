@@ -29,6 +29,10 @@ func Println(v ...interface{}) {
 	log.Println(fmt.Sprint(v...), getCallers(CALLER_LENGTH))
 }
 
+func Printf(format string, v ...interface{}) {
+	log.Printf(format, fmt.Sprint(v...), getCallers(CALLER_LENGTH))
+}
+
 // override log.Panicln
 func Panicln(v ...interface{}) {
 	log.Panicln(fmt.Sprint(v...), "\n", getCallers(CALLER_LENGTH_ERROR))
@@ -39,7 +43,7 @@ func Fatalln(v ...interface{}) {
 	log.Fatalln(fmt.Sprint(v...), getCallers(CALLER_LENGTH_ERROR))
 }
 
-func getCaller(num int) string {
+func GetCaller(num int) string {
 	s := ""
 	pc, file, line, ok := runtime.Caller(num)
 	if ok {
@@ -51,7 +55,7 @@ func getCaller(num int) string {
 func getCallers(length int) (s string) {
 
 	for i := CALLER_START; i < CALLER_START+length; i++ {
-		_s := getCaller(i)
+		_s := GetCaller(i)
 		if _s == "" {
 			break
 		}

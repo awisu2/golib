@@ -185,7 +185,7 @@ func (self *sql) Join(join *Join) *sql {
 }
 
 // select実行
-func (self *sql) Select(table string, db *DB) (datas []map[string]string, err error) {
+func (self *sql) Select(table string, db *DB) (datas []RowData, err error) {
 	query, args := self.QuerySelect(table)
 	rows, err := db.Query(query, args...)
 	if err != nil {
@@ -198,7 +198,7 @@ func (self *sql) Select(table string, db *DB) (datas []map[string]string, err er
 }
 
 // map形式にして取得
-func (self *sql) SelectToMap(table string, db *DB) (datas map[string]map[string]string, err error) {
+func (self *sql) SelectToMap(table string, db *DB) (datas map[string]RowData, err error) {
 	query, args := self.QuerySelect(table)
 	rows, err := db.Query(query, args...)
 	if err != nil {
@@ -211,7 +211,7 @@ func (self *sql) SelectToMap(table string, db *DB) (datas map[string]map[string]
 }
 
 // select実行
-func (self *sql) SelectToNullString(table string, db *DB) (datas []RowData, err error) {
+func (self *sql) SelectToNullString(table string, db *DB) (datas []RowStrData, err error) {
 	query, args := self.QuerySelect(table)
 	rows, err := db.Query(query, args...)
 	if err != nil {
@@ -232,7 +232,7 @@ func (self *sql) SelectRow(table string, db *DB) (data RowData, err error) {
 	}
 	defer rows.Close()
 
-	datas, err := RowsToDatas(rows)
+	datas, err := RowsToString(rows)
 	if err == nil && len(datas) > 0 {
 		data = datas[0]
 	}
@@ -316,7 +316,7 @@ func (self *sql) UnDelete(tableName string, db *DB) (result _sql.Result, err err
 	return
 }
 
-func Query(query string, db *DB, args ...interface{}) (datas []RowData, err error) {
+func Query(query string, db *DB, args ...interface{}) (datas []RowStrData, err error) {
 	rows, err := db.Query(query, args...)
 	if err != nil {
 		return

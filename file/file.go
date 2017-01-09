@@ -43,3 +43,20 @@ func MkdirIfNotExists(name string, perm os.FileMode) (err error) {
 	}
 	return
 }
+
+// ディレクトリ配下のファイル一覧(ディレクトリは除く)
+func FileInfos(dir string) (fileInfos []os.FileInfo, err error) {
+	infos, err := ioutil.ReadDir(dir)
+	if err != nil {
+		return
+	}
+
+	fileInfos = make([]os.FileInfo, 0)
+	for _, info := range infos {
+		if info.IsDir() {
+			continue
+		}
+		fileInfos = append(fileInfos, info)
+	}
+	return
+}

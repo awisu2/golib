@@ -374,3 +374,16 @@ func IsExist(tableName string, name string, value interface{}, db *DB) bool {
 
 	return true
 }
+
+// テーブルのレコード数取得
+func Count(table string, db *DB, isDeleteFlag bool) (int, error) {
+	sql := NewSql().Column("count(*) as count")
+	if isDeleteFlag {
+		sql.Where("deleted_at", nil)
+	}
+	data, err := sql.SelectRow(table, db)
+	if err != nil {
+		return 0, err
+	}
+	return data.Int("count"), nil
+}

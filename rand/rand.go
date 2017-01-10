@@ -2,7 +2,6 @@ package rand
 
 import (
 	"encoding/base32"
-	"fmt"
 	"math/rand"
 	"time"
 )
@@ -16,7 +15,7 @@ func init() {
 func String(length int) (s string) {
 	b := make([]byte, length)
 	rand.Read(b)
-	s = fmt.Sprintf(base32.StdEncoding.EncodeToString(b)[:length])
+	s = base32.StdEncoding.EncodeToString(b)[:length]
 
 	return
 }

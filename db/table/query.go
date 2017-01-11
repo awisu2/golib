@@ -80,10 +80,11 @@ import (
 //	return
 //}
 
+// テーブル作成クエリの取得
 func (self *Info) QueryCreateTable() (query string) {
 
 	for _, field := range self.Fields {
-		query += "  " + field.Name
+		query += "  `" + field.Name + "`"
 
 		switch field.Type {
 		case TYPE_INT:
@@ -148,6 +149,7 @@ func (self *Info) QueryCreateTable() (query string) {
 	return
 }
 
+// index設定クエリの取得
 func queryIndexs(indexes [][]string, isUniq bool) (query string) {
 	for _, index := range indexes {
 		index_name := ""
@@ -157,11 +159,11 @@ func queryIndexs(indexes [][]string, isUniq bool) (query string) {
 			columns += "," + column
 		}
 
-		query += "  "
+		query += " "
 		if isUniq {
-			query += "UNIQUE "
+			query += " UNIQUE"
 		}
-		query += "INDEX index_" + index_name[1:] + "(" + columns[1:] + "),\n"
+		query += " INDEX index_" + index_name[1:] + "(" + columns[1:] + "),\n"
 	}
 	return
 }

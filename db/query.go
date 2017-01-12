@@ -170,11 +170,8 @@ func (self *sql) QueryWhere() (query string, args []interface{}) {
 			if v.Value == nil {
 				q += " AND " + v.Name + " IS NULL"
 			} else {
-				switch v.Type {
-				case WHERE_TYPE_EQUAL:
-					q += " AND " + v.Name + " = ?"
-					args = append(args, v.Value)
-				case WHERE_TYPE_IN:
+				switch v.Operator {
+				case WHERE_OPERATOR_IN:
 					arr, ok := v.Value.([]interface{})
 					if ok && len(arr) > 0 {
 						q += " AND " + v.Name + " IN(" + strings.Repeat(",?", len(arr))[1:] + ")"
@@ -183,6 +180,10 @@ func (self *sql) QueryWhere() (query string, args []interface{}) {
 						q += " AND " + v.Name + " IN(?)"
 						args = append(args, "NULL")
 					}
+
+				default:
+					q += " AND " + v.Name + " " + v.Operator.String() + " ?"
+					args = append(args, v.Value)
 				}
 			}
 		}

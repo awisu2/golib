@@ -23,10 +23,33 @@ const (
 	LIMIT_OFFSET_NON = -1
 )
 
+//　whereのoperator
+type WhereOperator int
+
+// 文字列として取得
+func (self WhereOperator) String() string { return whereOperatorString[self-1] }
+
+// where operatorの実値
 const (
-	WHERE_TYPE_EQUAL = iota
-	WHERE_TYPE_IN
+	WHERE_OPERATOR_EQ WhereOperator = iota + 1
+	WHERE_OPERATOR_NE               // !=
+	WHERE_OPERATOR_LT               // <
+	WHERE_OPERATOR_LE               // <=
+	WHERE_OPERATOR_GT               // >
+	WHERE_OPERATOR_GE               // >=
+	WHERE_OPERATOR_IN
 )
+
+// where operator用文字
+var whereOperatorString = [...]string{
+	"=",
+	"!=",
+	"<",
+	"<=",
+	">",
+	">=",
+	"IN",
+}
 
 type sql struct {
 	column       string
@@ -41,9 +64,9 @@ type sql struct {
 }
 
 type where struct {
-	Name  string
-	Type  int
-	Value interface{}
+	Name     string
+	Operator WhereOperator
+	Value    interface{}
 }
 
 type order struct {
@@ -99,7 +122,7 @@ func (self *sql) Where(name string, value interface{}) *sql {
 	if self.Wheres == nil {
 		self.Wheres = []*where{}
 	}
-	self.Wheres = append(self.Wheres, &where{name, int(WHERE_TYPE_EQUAL), value})
+	self.Wheres = append(self.Wheres, &where{name, WHERE_OPERATOR_EQ, value})
 	return self
 }
 
@@ -108,7 +131,16 @@ func (self *sql) WhereIn(name string, value interface{}) *sql {
 	if self.Wheres == nil {
 		self.Wheres = []*where{}
 	}
-	self.Wheres = append(self.Wheres, &where{name, int(WHERE_TYPE_IN), value})
+	self.Wheres = append(self.Wheres, &where{name, WHERE_OPERATOR_IN, value})
+	return self
+}
+
+// whereの設定
+func (self *sql) WhereO(name string, value interface{}, operator WhereOperator) *sql {
+	if self.Wheres == nil {
+		self.Wheres = []*where{}
+	}
+	self.Wheres = append(self.Wheres, &where{name, operator, value})
 	return self
 }
 

@@ -156,3 +156,18 @@ func ConvertValToString(val interface{}) string {
 	// 上記以外ではnilのはず
 	return ""
 }
+
+// テンポラリデータとして利用する用のデータ
+type TmpRowDatas struct {
+	Datas []RowData
+}
+
+// データをクリア
+func (self *TmpRowDatas) Clear() {
+	self.Datas = nil
+}
+
+// データの存在チェック
+func (self *TmpRowDatas) IsExists() bool {
+	return self.Datas != nil
+}

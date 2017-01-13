@@ -1,8 +1,10 @@
 package http
 
 import (
+	"fmt"
 	"github.com/awisu2/golib/db"
 	"net/http"
+	"strings"
 )
 
 // *http.Requestから取得できる値をまとめた構造体
@@ -100,4 +102,47 @@ func (self *Session) GetArrayByQueries(key string) []string {
 		return []string{v}
 	}
 	return []string{}
+}
+
+// デバイスタイプ型
+type DeviceType int
+
+func (self DeviceType) Int() int {
+	return int(self)
+}
+
+// デバイスタイプ
+const (
+	DEVICE_TYPE_PC DeviceType = iota + 1
+	DEVICE_TYPE_MOBILE
+	DEVICE_TYPE_TABLET
+)
+
+// デバイスタイプの取得
+func (self *Session) GetDeviceType() DeviceType {
+	return GetDeviceType(self.Request)
+}
+
+// デバイスタイプの取得
+func GetDeviceType(r *http.Request) DeviceType {
+	ua := strings.ToLower(r.UserAgent())
+	deviceType := DEVICE_TYPE_PC
+	if strings.Index(ua, "iphone") >= 0 ||
+		strings.Index(ua, "ipod") >= 0 ||
+		(strings.Index(ua, "android") >= 0 && strings.Index(ua, "mobile") >= 0) ||
+		(strings.Index(ua, "windows") >= 0 && strings.Index(ua, "phone") >= 0) ||
+		(strings.Index(ua, "firefox") >= 0 && strings.Index(ua, "mobile") >= 0) ||
+		strings.Index(ua, "blackberry") >= 0 ||
+		strings.Index(ua, "bb") >= 0 {
+		deviceType = DEVICE_TYPE_MOBILE
+	} else if strings.Index(ua, "ipad") >= 0 ||
+		(strings.Index(ua, "windows") >= 0 && strings.Index(ua, "touch") >= 0 && strings.Index(ua, "tablet pc") >= 0) ||
+		(strings.Index(ua, "android") >= 0 && strings.Index(ua, "mobile") >= 0) ||
+		(strings.Index(ua, "firefox") >= 0 && strings.Index(ua, "tablet") >= 0) ||
+		(strings.Index(ua, "kindle") >= 0 && strings.Index(ua, "silk") >= 0) ||
+		strings.Index(ua, "playbook") >= 0 {
+		deviceType = DEVICE_TYPE_TABLET
+	}
+	fmt.Println(ua)
+	return deviceType
 }

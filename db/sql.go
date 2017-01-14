@@ -394,7 +394,8 @@ func DropTable(tableName string, db *DB) (result _sql.Result, err error) {
 
 // レコードの存在チェック
 func IsExist(tableName string, name string, value interface{}, db *DB) bool {
-	rows, err := db.Query(NewSql().Column("id").Where(name, value).QuerySelect(tableName))
+	query, args := NewSql().Column("id").Where(name, value).LimitRowcount(1).QuerySelect(tableName)
+	rows, err := db.Query(query, args...)
 	if err != nil {
 		return false
 	}

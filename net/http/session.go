@@ -107,8 +107,19 @@ func (self *Session) GetArrayByQueries(key string) []string {
 // デバイスタイプ型
 type DeviceType int
 
-func (self DeviceType) Int() int {
-	return int(self)
+// check device type pc
+func (self DeviceType) IsPC() bool {
+	return self == DEVICE_TYPE_PC
+}
+
+// check device type mobile
+func (self DeviceType) IsMobile() bool {
+	return self == DEVICE_TYPE_MOBILE
+}
+
+// check device type tablet
+func (self DeviceType) IsTablet() bool {
+	return self == DEVICE_TYPE_TABLET
 }
 
 // デバイスタイプ

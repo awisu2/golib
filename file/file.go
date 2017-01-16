@@ -1,7 +1,6 @@
 package file
 
 import (
-	"github.com/awisu2/golib/log"
 	"io/ioutil"
 	"os"
 )
@@ -9,13 +8,10 @@ import (
 // ファイル読み込み
 func ReadFile(path string) (string, error) {
 	data, err := ioutil.ReadFile(path)
-	s := ""
-	if err == nil {
-		s = string(data)
-	} else {
-		log.Errorf(err)
+	if err != nil {
+		return "", err
 	}
-
+	s := string(data)
 	return s, err
 }
 
@@ -23,7 +19,6 @@ func ReadFile(path string) (string, error) {
 func WriteFile(filename string, data string, perm os.FileMode) error {
 	err := ioutil.WriteFile(filename, []byte(data), perm)
 	if err != nil {
-		log.Errorf(err)
 		return err
 	}
 	return nil
@@ -38,7 +33,6 @@ func Exists(name string) bool {
 // ディレクトリ作成
 func MkdirIfNotExists(name string, perm os.FileMode) (err error) {
 	if !Exists(name) {
-		log.Println("file not exists, try create dir. " + name)
 		return os.Mkdir(name, perm)
 	}
 	return

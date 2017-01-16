@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"github.com/awisu2/golib/db"
 	"net/http"
 	"strings"
@@ -168,6 +167,5 @@ func GetDeviceType(r *http.Request) DeviceType {
 		strings.Index(ua, "playbook") >= 0 {
 		deviceType = DEVICE_TYPE_TABLET
 	}
-	fmt.Println(ua)
 	return deviceType
 }

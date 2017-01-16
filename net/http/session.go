@@ -11,11 +11,25 @@ import (
 type Session struct {
 	Writer    http.ResponseWriter
 	Request   *http.Request
-	Pathes    []string
+	Pathes    Queue
 	Queries   map[string]string
 	Querieses map[string][]string
 	DBs       map[string]*db.DB
 	Any       map[string]interface{}
+}
+
+type Queue []string
+
+// queue push
+func (self *Queue) Push(v string) {
+	*self = append((*self), v)
+}
+
+// queue pull
+func (self *Queue) Pull() string {
+	v := (*self)[0]
+	*self = append((*self)[1:])
+	return v
 }
 
 // リダイレクト

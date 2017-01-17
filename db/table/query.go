@@ -95,6 +95,8 @@ func (self *Info) QueryCreateTable() (query string) {
 			query += " VARCHAR"
 		case TYPE_TEXT:
 			query += " TEXT"
+		case TYPE_MEDIUMTEXT:
+			query += " MEDIUMTEXT"
 		case TYPE_BOOL:
 			query += " bool"
 		case TYPE_DATE:

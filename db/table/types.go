@@ -10,6 +10,7 @@ const (
 	TYPE_TIME
 	TYPE_BOOL
 	TYPE_TEXT
+	TYPE_MEDIUMTEXT
 )
 
 const (

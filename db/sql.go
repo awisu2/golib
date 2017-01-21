@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/awisu2/golib/db/table"
 	"github.com/awisu2/golib/log"
+	"strconv"
 )
 
 const (
@@ -268,6 +269,27 @@ func (self *sql) SelectRow(table string, db *DB) (data RowData, err error) {
 	if err == nil && len(datas) > 0 {
 		data = datas[0]
 	}
+	return
+}
+
+func (self *sql) Count(table string, db *DB, useLimit bool) (count int, err error) {
+	column, limit := self.column, self.limit
+	self.column = "count(*) AS count"
+	if !useLimit {
+		self.limit = nil
+	}
+	data, err := self.SelectRow(table, db)
+	self.column, self.limit = column, limit
+	if err != nil {
+		return
+	}
+	if data == nil {
+		return
+	}
+
+	_count := data["count"]
+	count, _ = strconv.Atoi(_count)
+
 	return
 }
 

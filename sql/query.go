@@ -1,12 +1,12 @@
-package db
+package sql
 
 import (
 	"fmt"
-	"github.com/awisu2/golib/db/table"
+	"github.com/awisu2/golib/sql/table"
 	"strings"
 )
 
-func (self *sql) QuerySelect(tableName string) (query string, args []interface{}) {
+func (self *query) QuerySelect(tableName string) (query string, args []interface{}) {
 	args = []interface{}{}
 
 	// join
@@ -26,7 +26,7 @@ func (self *sql) QuerySelect(tableName string) (query string, args []interface{}
 	return
 }
 
-func (self *sql) QueryInsert(tableName string) (query string, args []interface{}) {
+func (self *query) QueryInsert(tableName string) (query string, args []interface{}) {
 	// table.Infoの取得
 	var info *table.Info
 	if self.UseTableInfo && _table != nil {
@@ -64,7 +64,7 @@ func (self *sql) QueryInsert(tableName string) (query string, args []interface{}
 	return
 }
 
-func (self *sql) QueryInserts(tableName string, vals []map[string]interface{}) (query string, args []interface{}) {
+func (self *query) QueryInserts(tableName string, vals []map[string]interface{}) (query string, args []interface{}) {
 	// table.Infoの取得
 	var info *table.Info
 	if self.UseTableInfo && _table != nil {
@@ -118,7 +118,7 @@ func (self *sql) QueryInserts(tableName string, vals []map[string]interface{}) (
 	return
 }
 
-func (self *sql) QueryUpdate(tableName string) (query string, args []interface{}) {
+func (self *query) QueryUpdate(tableName string) (query string, args []interface{}) {
 	args = []interface{}{}
 
 	setQuery, setArgs := self.QuerySet(tableName)
@@ -136,7 +136,7 @@ func (self *sql) QueryUpdate(tableName string) (query string, args []interface{}
 }
 
 // joinクエリ作成
-func (self *sql) QueryJoin() (query string) {
+func (self *query) QueryJoin() (query string) {
 	if self.Joins == nil {
 		return
 	}
@@ -163,7 +163,7 @@ func (self *sql) QueryJoin() (query string) {
 	return
 }
 
-func (self *sql) QueryWhere() (query string, args []interface{}) {
+func (self *query) QueryWhere() (query string, args []interface{}) {
 	if self.Wheres != nil {
 		q := ""
 		for _, v := range self.Wheres {
@@ -194,7 +194,7 @@ func (self *sql) QueryWhere() (query string, args []interface{}) {
 	return
 }
 
-func (self *sql) QueryOrder() (query string) {
+func (self *query) QueryOrder() (query string) {
 	if self.Orders != nil {
 		q := ""
 		for _, v := range self.Orders {
@@ -211,14 +211,14 @@ func (self *sql) QueryOrder() (query string) {
 	return
 }
 
-func (self *sql) QueryGroup() (query string) {
+func (self *query) QueryGroup() (query string) {
 	if self.GroupBy != "" {
 		query = " GROUP BY " + self.GroupBy
 	}
 	return
 }
 
-func (self *sql) QueryLimit() (query string) {
+func (self *query) QueryLimit() (query string) {
 	if self.limit != nil {
 		q := ""
 		if self.limit.offset != LIMIT_OFFSET_NON {
@@ -231,7 +231,7 @@ func (self *sql) QueryLimit() (query string) {
 	return
 }
 
-func (self *sql) QuerySet(tableName string) (query string, args []interface{}) {
+func (self *query) QuerySet(tableName string) (query string, args []interface{}) {
 	// table.Infoの取得
 	var info *table.Info
 	if self.UseTableInfo && _table != nil {
@@ -264,7 +264,7 @@ func (self *sql) QuerySet(tableName string) (query string, args []interface{}) {
 	return
 }
 
-func (self *sql) QueryDelete(tableName string) (query string, args []interface{}) {
+func (self *query) QueryDelete(tableName string) (query string, args []interface{}) {
 	// table.Infoの取得
 	var info *table.Info
 	if self.UseTableInfo && _table != nil {
@@ -303,7 +303,7 @@ func (self *sql) QueryDelete(tableName string) (query string, args []interface{}
 	return
 }
 
-func (self *sql) QueryUnDelete(tableName string) (query string, args []interface{}) {
+func (self *query) QueryUnDelete(tableName string) (query string, args []interface{}) {
 	args = []interface{}{}
 
 	// table.Infoの取得
@@ -335,7 +335,7 @@ func (self *sql) QueryUnDelete(tableName string) (query string, args []interface
 	return
 }
 
-func (self *sql) QueryForceDelete(tableName string) (query string, args []interface{}) {
+func (self *query) QueryForceDelete(tableName string) (query string, args []interface{}) {
 	query = "DELETE FROM " + tableName
 
 	// where

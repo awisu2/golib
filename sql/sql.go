@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/awisu2/golib/log"
-	"github.com/awisu2/golib/sql/table"
+
 	"strconv"
 )
 
@@ -96,21 +96,7 @@ type security struct {
 	CanNoWhereUpdateOrDelete bool // update,deleteをするときにwhereがないことを許容(default: false)
 }
 
-// table操作Interface
-type tableInterface interface {
-	// テーブル名を指定しTable.Infoを返却
-	GetInfo(string) *table.Info
-}
-
-// インスタンス
-var _table tableInterface
-
-// セットしておくとテーブル名をベースに操作を自動化
-// Updated_at, Deleted_at, Created_atを自動セット
-func SetTable(t tableInterface) {
-	_table = t
-}
-
+// get new query
 func NewQuery() *query {
 	return &query{column: "*", UseTableInfo: true, Security: &security{CanNoWhereUpdateOrDelete: false}}
 }

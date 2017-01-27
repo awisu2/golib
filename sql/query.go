@@ -29,8 +29,8 @@ func (self *query) QuerySelect(tableName string) (query string, args []interface
 func (self *query) QueryInsert(tableName string) (query string, args []interface{}) {
 	// table.Infoの取得
 	var info *table.Info
-	if self.UseTableInfo && _table != nil {
-		info = _table.GetInfo(tableName)
+	if self.UseTableInfo && tableInfos != nil {
+		info = tableInfos[tableName]
 	}
 
 	args = []interface{}{}
@@ -67,8 +67,8 @@ func (self *query) QueryInsert(tableName string) (query string, args []interface
 func (self *query) QueryInserts(tableName string, vals []map[string]interface{}) (query string, args []interface{}) {
 	// table.Infoの取得
 	var info *table.Info
-	if self.UseTableInfo && _table != nil {
-		info = _table.GetInfo(tableName)
+	if self.UseTableInfo && tableInfos != nil {
+		info = tableInfos[tableName]
 	}
 
 	if len(vals) <= 0 {
@@ -234,8 +234,8 @@ func (self *query) QueryLimit() (query string) {
 func (self *query) QuerySet(tableName string) (query string, args []interface{}) {
 	// table.Infoの取得
 	var info *table.Info
-	if self.UseTableInfo && _table != nil {
-		info = _table.GetInfo(tableName)
+	if self.UseTableInfo && tableInfos != nil {
+		info = tableInfos[tableName]
 	}
 
 	args = []interface{}{}
@@ -267,8 +267,8 @@ func (self *query) QuerySet(tableName string) (query string, args []interface{})
 func (self *query) QueryDelete(tableName string) (query string, args []interface{}) {
 	// table.Infoの取得
 	var info *table.Info
-	if self.UseTableInfo && _table != nil {
-		info = _table.GetInfo(tableName)
+	if self.UseTableInfo && tableInfos != nil {
+		info = tableInfos[tableName]
 	}
 
 	// infoが見つからない場合はレコード削除に切り替え
@@ -308,8 +308,8 @@ func (self *query) QueryUnDelete(tableName string) (query string, args []interfa
 
 	// table.Infoの取得
 	var info *table.Info
-	if self.UseTableInfo && _table != nil {
-		info = _table.GetInfo(tableName)
+	if self.UseTableInfo && tableInfos != nil {
+		info = tableInfos[tableName]
 	}
 	if info == nil {
 		return

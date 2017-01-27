@@ -92,9 +92,9 @@ func (self *Session) AddConfig(name string, config *Config) {
 }
 
 // create session
-func NewSession() *Session {
+func NewSession(configs map[string]*Config) *Session {
 	return &Session{
-		configs: map[string]*Config{},
+		configs: configs,
 		dbs:     map[string]*DB{},
 	}
 }

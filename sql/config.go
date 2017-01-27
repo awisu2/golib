@@ -40,7 +40,7 @@ func (self *Session) Open(name string) (db *DB, err error) {
 	}
 
 	// open
-	db, err = Open(config.Host, config.Database)
+	db, err = OpenByConfig(config)
 	if err != nil {
 		return
 	}

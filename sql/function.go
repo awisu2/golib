@@ -16,6 +16,11 @@ func Open(host string, database string) (db *DB, err error) {
 	return
 }
 
+// open db connection by config
+func OpenByConfig(config *Config) (db *DB, err error) {
+	return Open(config.Host, config.Database)
+}
+
 // execute select query
 func Query(query string, db *DB, args ...interface{}) (datas []RowStrData, err error) {
 	rows, err := db.Query(query, args...)

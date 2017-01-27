@@ -1,7 +1,7 @@
 package http
 
 import (
-	"github.com/awisu2/golib/db"
+	"github.com/awisu2/golib/sql"
 	"net/http"
 	"strings"
 )
@@ -13,7 +13,7 @@ type Session struct {
 	Pathes    Queue
 	Queries   map[string]string
 	Querieses map[string][]string
-	DBs       map[string]*db.DB
+	DBSession *sql.Session
 	Any       map[string]interface{}
 }
 
@@ -55,38 +55,34 @@ func (self *Session) SetCookies(cookie *http.Cookie) {
 	http.SetCookie(self.Writer, cookie)
 }
 
-func (self *Session) DBOpen(host string, database string) (_db *db.DB, err error) {
-	key := host + "/" + database
-	if self.DBs != nil {
-		_db, ok := self.DBs[key]
-		if ok {
-			return _db, nil
-		}
-	}
-
-	_db, err = db.Open(host, database)
-	if err != nil {
-		return nil, err
-	}
-
-	if self.DBs == nil {
-		self.DBs = map[string]*db.DB{}
-	}
-	self.DBs[key] = _db
-
-	return
-}
+//func (self *Session) DBOpen(host string, database string) (_db *db.DB, err error) {
+//	key := host + "/" + database
+//	if self.DBs != nil {
+//		_db, ok := self.DBs[key]
+//		if ok {
+//			return _db, nil
+//		}
+//	}
+//
+//	_db, err = db.Open(host, database)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	if self.DBs == nil {
+//		self.DBs = map[string]*db.DB{}
+//	}
+//	self.DBs[key] = _db
+//
+//	return
+//}
 
 func (self *Session) Clear() {
 	self.DBClose()
 }
 
 func (self *Session) DBClose() {
-	if self.DBs != nil {
-		for _, v := range self.DBs {
-			v.Close()
-		}
-	}
+	self.DBSession.CloseAll()
 }
 
 func (self *Session) SetAny(k string, v interface{}) {

@@ -1,11 +1,16 @@
-package db
+package sql
 
 import (
-	_sql "database/sql"
+	"database/sql"
 	"fmt"
-	"github.com/awisu2/golib/db/table"
 	"github.com/awisu2/golib/log"
+
+	"strconv"
 )
+
+type DB struct {
+	*sql.DB
+}
 
 const (
 	ORDER_TYPE_ASC = iota
@@ -51,7 +56,7 @@ var whereOperatorString = [...]string{
 	"IN",
 }
 
-type sql struct {
+type query struct {
 	column       string
 	Wheres       []*where
 	Orders       []*order
@@ -91,34 +96,20 @@ type security struct {
 	CanNoWhereUpdateOrDelete bool // update,deleteをするときにwhereがないことを許容(default: false)
 }
 
-// table操作Interface
-type tableInterface interface {
-	// テーブル名を指定しTable.Infoを返却
-	GetInfo(string) *table.Info
-}
-
-// インスタンス
-var _table tableInterface
-
-// セットしておくとテーブル名をベースに操作を自動化
-// Updated_at, Deleted_at, Created_atを自動セット
-func SetTable(t tableInterface) {
-	_table = t
-}
-
-func NewSql() *sql {
-	return &sql{column: "*", UseTableInfo: true, Security: &security{CanNoWhereUpdateOrDelete: false}}
+// get new query
+func NewQuery() *query {
+	return &query{column: "*", UseTableInfo: true, Security: &security{CanNoWhereUpdateOrDelete: false}}
 }
 
 // select時の取得columnを設定
 // セットした値は特に変換されずそのまま使用される(例: a as a, b)
-func (self *sql) Column(column string) *sql {
+func (self *query) Column(column string) *query {
 	self.column = column
 	return self
 }
 
 // whereの設定
-func (self *sql) Where(name string, value interface{}) *sql {
+func (self *query) Where(name string, value interface{}) *query {
 	if self.Wheres == nil {
 		self.Wheres = []*where{}
 	}
@@ -127,7 +118,7 @@ func (self *sql) Where(name string, value interface{}) *sql {
 }
 
 // whereの設定
-func (self *sql) WhereIn(name string, value interface{}) *sql {
+func (self *query) WhereIn(name string, value interface{}) *query {
 	if self.Wheres == nil {
 		self.Wheres = []*where{}
 	}
@@ -136,7 +127,7 @@ func (self *sql) WhereIn(name string, value interface{}) *sql {
 }
 
 // whereの設定
-func (self *sql) WhereO(name string, value interface{}, operator WhereOperator) *sql {
+func (self *query) WhereO(name string, value interface{}, operator WhereOperator) *query {
 	if self.Wheres == nil {
 		self.Wheres = []*where{}
 	}
@@ -145,13 +136,13 @@ func (self *sql) WhereO(name string, value interface{}, operator WhereOperator) 
 }
 
 // where条件をクリア
-func (self *sql) ClearWhere() *sql {
+func (self *query) ClearWhere() *query {
 	self.Wheres = nil
 	return self
 }
 
 // order asc を設定
-func (self *sql) OrderAsc(name string) *sql {
+func (self *query) OrderAsc(name string) *query {
 	if self.Orders == nil {
 		self.Orders = []*order{}
 	}
@@ -160,7 +151,7 @@ func (self *sql) OrderAsc(name string) *sql {
 }
 
 // order desc を設定
-func (self *sql) OrderDesc(name string) *sql {
+func (self *query) OrderDesc(name string) *query {
 	if self.Orders == nil {
 		self.Orders = []*order{}
 	}
@@ -168,7 +159,7 @@ func (self *sql) OrderDesc(name string) *sql {
 	return self
 }
 
-func (self *sql) Limit(offset int, rowcount int) *sql {
+func (self *query) Limit(offset int, rowcount int) *query {
 	if self.limit == nil {
 		self.limit = &limit{offset, rowcount}
 	} else {
@@ -178,17 +169,17 @@ func (self *sql) Limit(offset int, rowcount int) *sql {
 	return self
 }
 
-func (self *sql) LimitRowcount(rowcount int) *sql {
+func (self *query) LimitRowcount(rowcount int) *query {
 	return self.Limit(LIMIT_OFFSET_NON, rowcount)
 }
 
-func (self *sql) Group(group string) *sql {
+func (self *query) Group(group string) *query {
 	self.GroupBy = group
 	return self
 }
 
 // insertまたはupdate用の値をセット
-func (self *sql) Set(column string, value interface{}) *sql {
+func (self *query) Set(column string, value interface{}) *query {
 	if self.Sets == nil {
 		self.Sets = map[string]interface{}{}
 	}
@@ -197,7 +188,7 @@ func (self *sql) Set(column string, value interface{}) *sql {
 }
 
 // insertまたはupdate用の値を複数セット
-func (self *sql) SetValues(vals map[string]interface{}) *sql {
+func (self *query) SetValues(vals map[string]interface{}) *query {
 	for column, value := range vals {
 		self.Set(column, value)
 	}
@@ -205,7 +196,7 @@ func (self *sql) SetValues(vals map[string]interface{}) *sql {
 }
 
 // join分用
-func (self *sql) Join(join *Join) *sql {
+func (self *query) Join(join *Join) *query {
 	if join == nil {
 		return self
 	}
@@ -217,7 +208,7 @@ func (self *sql) Join(join *Join) *sql {
 }
 
 // select実行
-func (self *sql) Select(table string, db *DB) (datas []RowData, err error) {
+func (self *query) Select(table string, db *DB) (datas []RowData, err error) {
 	query, args := self.QuerySelect(table)
 	rows, err := db.Query(query, args...)
 	if err != nil {
@@ -230,7 +221,7 @@ func (self *sql) Select(table string, db *DB) (datas []RowData, err error) {
 }
 
 // map形式にして取得
-func (self *sql) SelectToMap(table string, db *DB) (datas map[string]RowData, err error) {
+func (self *query) SelectToMap(table string, db *DB) (datas map[string]RowData, err error) {
 	query, args := self.QuerySelect(table)
 	rows, err := db.Query(query, args...)
 	if err != nil {
@@ -243,7 +234,7 @@ func (self *sql) SelectToMap(table string, db *DB) (datas map[string]RowData, er
 }
 
 // select実行
-func (self *sql) SelectToNullString(table string, db *DB) (datas []RowStrData, err error) {
+func (self *query) SelectToNullString(table string, db *DB) (datas []RowStrData, err error) {
 	query, args := self.QuerySelect(table)
 	rows, err := db.Query(query, args...)
 	if err != nil {
@@ -256,7 +247,7 @@ func (self *sql) SelectToNullString(table string, db *DB) (datas []RowStrData, e
 }
 
 // select実行
-func (self *sql) SelectRow(table string, db *DB) (data RowData, err error) {
+func (self *query) SelectRow(table string, db *DB) (data RowData, err error) {
 	query, args := self.QuerySelect(table)
 	rows, err := db.Query(query, args...)
 	if err != nil {
@@ -271,8 +262,29 @@ func (self *sql) SelectRow(table string, db *DB) (data RowData, err error) {
 	return
 }
 
+func (self *query) Count(table string, db *DB, useLimit bool) (count int, err error) {
+	column, limit := self.column, self.limit
+	self.column = "count(*) AS count"
+	if !useLimit {
+		self.limit = nil
+	}
+	data, err := self.SelectRow(table, db)
+	self.column, self.limit = column, limit
+	if err != nil {
+		return
+	}
+	if data == nil {
+		return
+	}
+
+	_count := data["count"]
+	count, _ = strconv.Atoi(_count)
+
+	return
+}
+
 // Update実行
-func (self *sql) Update(table string, db *DB) (result _sql.Result, err error) {
+func (self *query) Update(table string, db *DB) (result sql.Result, err error) {
 	// check where exist
 	if self.Security.CanNoWhereUpdateOrDelete == false {
 		if self.Wheres == nil || len(self.Wheres) == 0 {
@@ -290,7 +302,7 @@ func (self *sql) Update(table string, db *DB) (result _sql.Result, err error) {
 }
 
 // Insert実行
-func (self *sql) Insert(tableName string, db *DB) (result _sql.Result, err error) {
+func (self *query) Insert(tableName string, db *DB) (result sql.Result, err error) {
 	query, args := self.QueryInsert(tableName)
 	result, err = db.Exec(query, args...)
 	if err != nil {
@@ -300,7 +312,7 @@ func (self *sql) Insert(tableName string, db *DB) (result _sql.Result, err error
 }
 
 // Insert実行
-func (self *sql) Inserts(tableName string, db *DB, vals []map[string]interface{}) (result _sql.Result, err error) {
+func (self *query) Inserts(tableName string, db *DB, vals []map[string]interface{}) (result sql.Result, err error) {
 	query, args := self.QueryInserts(tableName, vals)
 	log.Println(query)
 	result, err = db.Exec(query, args...)
@@ -311,7 +323,7 @@ func (self *sql) Inserts(tableName string, db *DB, vals []map[string]interface{}
 }
 
 // Delete実行
-func (self *sql) Delete(tableName string, db *DB, isForce bool) (result _sql.Result, err error) {
+func (self *query) Delete(tableName string, db *DB, isForce bool) (result sql.Result, err error) {
 	// check where exist
 	if self.Security.CanNoWhereUpdateOrDelete == false {
 		if self.Wheres == nil || len(self.Wheres) == 0 {
@@ -335,7 +347,7 @@ func (self *sql) Delete(tableName string, db *DB, isForce bool) (result _sql.Res
 }
 
 // deleted_atを設定している場合に有効
-func (self *sql) UnDelete(tableName string, db *DB) (result _sql.Result, err error) {
+func (self *query) UnDelete(tableName string, db *DB) (result sql.Result, err error) {
 	query, args := self.QueryUnDelete(tableName)
 	if query == "" {
 		err = fmt.Errorf("no deleted_at column.")
@@ -346,77 +358,4 @@ func (self *sql) UnDelete(tableName string, db *DB) (result _sql.Result, err err
 		return
 	}
 	return
-}
-
-func Query(query string, db *DB, args ...interface{}) (datas []RowStrData, err error) {
-	rows, err := db.Query(query, args...)
-	if err != nil {
-		return
-	}
-	defer rows.Close()
-
-	datas, err = RowsToDatas(rows)
-	return
-}
-
-func Exec(query string, db *DB, args ...interface{}) (result _sql.Result, err error) {
-	result, err = db.Exec(query, args...)
-	if err != nil {
-		return
-	}
-	return
-}
-
-// テーブルの存在確認
-func IsExistTable(tableName string, db *DB) bool {
-	rows, err := db.Query("SHOW TABLES like '" + tableName + "'")
-	if err != nil {
-		return false
-	}
-	defer rows.Close()
-
-	if !rows.Next() {
-		return false
-	}
-
-	return true
-}
-
-// truncate
-func TruncateTable(tableName string, db *DB) (result _sql.Result, err error) {
-	return Exec(QueryTruncate(tableName), db)
-}
-
-// テーブル削除
-func DropTable(tableName string, db *DB) (result _sql.Result, err error) {
-	return Exec(QueryDrop(tableName), db)
-}
-
-// レコードの存在チェック
-func IsExist(tableName string, name string, value interface{}, db *DB) bool {
-	query, args := NewSql().Column("id").Where(name, value).LimitRowcount(1).QuerySelect(tableName)
-	rows, err := db.Query(query, args...)
-	if err != nil {
-		return false
-	}
-	defer rows.Close()
-
-	if !rows.Next() {
-		return false
-	}
-
-	return true
-}
-
-// テーブルのレコード数取得
-func Count(table string, db *DB, isDeleteFlag bool) (int, error) {
-	sql := NewSql().Column("count(*) as count")
-	if isDeleteFlag {
-		sql.Where("deleted_at", nil)
-	}
-	data, err := sql.SelectRow(table, db)
-	if err != nil {
-		return 0, err
-	}
-	return data.Int("count"), nil
 }

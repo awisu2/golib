@@ -13,9 +13,9 @@ type htmlDecoration func(s string) (html template.HTML)
 // レコードのカラムの情報
 type Field struct {
 	Name       string
-	Type       int
+	Type       ColumnType
 	Length     int
-	AutoTime   int
+	AutoTime   AutoTime
 	IsNull     bool
 	Default    string
 	Comment    string

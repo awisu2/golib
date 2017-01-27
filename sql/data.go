@@ -1,11 +1,11 @@
-package db
+package sql
 
 import (
 	_sql "database/sql"
 	"strconv"
 )
 
-type RowStrData map[string]NullString
+type RowStrData map[string]_sql.NullString
 type RowData map[string]string
 
 // Rowsから値を取得
@@ -28,7 +28,7 @@ func RowsToDatas(rows *_sql.Rows) (datas []RowStrData, err error) {
 		// マップに登録しなおす
 		data := RowStrData{}
 		for i, name := range columns {
-			data[name] = NullString(vals[i])
+			data[name] = vals[i]
 		}
 		datas = append(datas, data)
 	}
@@ -107,36 +107,6 @@ func (self RowData) Int(key string) int {
 	if err != nil {
 		return 0
 	}
-	return i
-}
-
-func (self RowStrData) Get(key string) NullString {
-	v, ok := self[key]
-	if !ok {
-		return NullString{}
-	}
-	return v
-}
-
-func (self RowStrData) Text(key string) string {
-	v, ok := self[key]
-	if !ok {
-		return ""
-	}
-	return v.Text()
-}
-
-func (self RowStrData) Int(key string, def int) int {
-	v, ok := self[key]
-	if !ok {
-		return def
-	}
-
-	i, err := strconv.Atoi(v.Text())
-	if err != nil {
-		return def
-	}
-
 	return i
 }
 

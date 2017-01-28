@@ -2,6 +2,7 @@ package http
 
 import (
 	"github.com/awisu2/golib/sql"
+	"github.com/awisu2/golib/types"
 	"net/http"
 	"strings"
 )
@@ -11,7 +12,7 @@ type Session struct {
 	Writer    http.ResponseWriter
 	Request   *http.Request
 	Pathes    Queue
-	Queries   map[string]string
+	Queries   types.MapStringString
 	Querieses map[string][]string
 	DBSession *sql.Session
 	Any       map[string]interface{}

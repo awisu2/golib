@@ -6,6 +6,10 @@
 
 ## history
 
+### 20170128
+
+- 【追加】type MapStringString map[string]string
+
 ### 20170127
 
 - golib/sqlにtableInfosを追加  

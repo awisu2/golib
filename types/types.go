@@ -21,3 +21,5 @@ func (self MapStringString) Int(key string, def int) (int, error) {
 
 	return i, nil
 }
+
+type MapString map[string]interface{}

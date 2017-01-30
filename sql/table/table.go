@@ -25,10 +25,11 @@ type Field struct {
 
 // 情報
 type Info struct {
-	TableName string
-	Fields    Fields
-	Indexs    [][]string
-	Uniqs     [][]string
+	TableName  string
+	ConfigName string
+	Fields     Fields
+	Indexs     [][]string
+	Uniqs      [][]string
 }
 
 // カラムをまとめたもの(keyをレコード名として使用)

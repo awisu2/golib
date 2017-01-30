@@ -30,7 +30,7 @@ func Println(v ...interface{}) {
 }
 
 func Printf(format string, v ...interface{}) {
-	log.Printf(format, fmt.Sprint(v...), getCallers(CALLER_LENGTH))
+	log.Printf(format+" "+getCallers(CALLER_LENGTH), v...)
 }
 
 // override log.Panicln

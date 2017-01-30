@@ -11,6 +11,8 @@
 - 文字列数値を日本語数値に変換する機能追加
 - mpa[string]interface{}をとりあえず宣言
 - os.Argsがあんまり行けてる感じに使えてなかったので、パッケージだけ作成
+- logがExtraStringを出力していたので修正
+- sql/tableにDBConfigNameを追加
 
 ### 20170128
 

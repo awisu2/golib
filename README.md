@@ -6,6 +6,10 @@
 
 ## history
 
+### 20170130
+
+- 文字列数値を日本語数値に変換する機能追加
+
 ### 20170128
 
 - 【追加】type MapStringString map[string]string

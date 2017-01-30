@@ -4,6 +4,7 @@ import (
 	"strings"
 )
 
+// exec strings.Index some time by num
 func IndexNum(s, sep string, num int) int {
 	index := -1
 	sum := 0

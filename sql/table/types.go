@@ -25,11 +25,11 @@ var columnTypeString = [...]string{
 	"INT",
 	"MIDDLEINT",
 	"VARCHAR",
+	"DATETIME",  // '1000-01-01 00:00:00' ～ '9999-12-31 23:59:59'
+	"TIMESTAMP", // '1970-01-01 00:00:01' UTC ～ '2038-01-19 03:14:07' UTC
+	"BOOL",
 	"TEXT",
 	"MEDIUMTEXT",
-	"BOOL",
-	"DATETIME",
-	"TIMESTAMP",
 }
 
 type AutoTime int

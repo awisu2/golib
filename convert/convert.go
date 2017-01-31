@@ -1,7 +1,11 @@
 package convert
 
 import (
+	"bufio"
+	"golang.org/x/text/encoding/japanese"
+	"golang.org/x/text/transform"
 	"strconv"
+	"strings"
 )
 
 var NumString = [...]string{"０", "１", "２", "３", "４", "５", "６", "７", "８", "９"}
@@ -15,5 +19,21 @@ func JapaneseNumString(s string) (num string, err error) {
 		}
 		num += NumString[idx]
 	}
+	return
+}
+
+// convert code shiftjis to utf8
+func ShiftJisToUtf8(str string) (utf8 string) {
+	reader := strings.NewReader(str)
+	tReader := transform.NewReader(reader, japanese.ShiftJIS.NewDecoder())
+	scanner := bufio.NewScanner(tReader)
+	for scanner.Scan() {
+		utf8 = scanner.Text()
+		break
+	}
+	if err := scanner.Err(); err != nil {
+		return ""
+	}
+
 	return
 }

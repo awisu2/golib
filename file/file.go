@@ -17,11 +17,14 @@ func ReadFile(path string) (string, error) {
 
 // ファイル書き込み
 func WriteFile(filename string, data string, perm os.FileMode) error {
-	err := ioutil.WriteFile(filename, []byte(data), perm)
-	if err != nil {
-		return err
-	}
-	return nil
+	return ioutil.WriteFile(filename, []byte(data), perm)
+}
+
+// ファイル書き込み
+// if you want 0777 set os.ModePerm for os.FileMode
+// windows os can't save other drive
+func WriteFileByBytes(filename string, data []byte, perm os.FileMode) error {
+	return ioutil.WriteFile(filename, data, perm)
 }
 
 // 存在チェック
@@ -53,4 +56,9 @@ func FileInfos(dir string) (fileInfos []os.FileInfo, err error) {
 		fileInfos = append(fileInfos, info)
 	}
 	return
+}
+
+// remove file
+func Remove(path string) error {
+	return os.Remove(path)
 }

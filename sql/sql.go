@@ -17,8 +17,10 @@ const (
 	ORDER_TYPE_DESC
 )
 
+type JoinType int
+
 const (
-	JOIN_TYPE_INNER = iota + 1
+	JOIN_TYPE_INNER JoinType = iota + 1
 	JOIN_TYPE_LEFT
 	JOIN_TYPE_RIGHT
 	JOIN_TYPE_FULL
@@ -87,7 +89,7 @@ type limit struct {
 type Join struct {
 	Table string
 	Alias string
-	Type  int
+	Type  JoinType
 	On    string
 }
 

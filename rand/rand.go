@@ -19,3 +19,7 @@ func String(length int) (s string) {
 
 	return
 }
+
+func Intn(n int) int {
+	return rand.Intn(n)
+}

@@ -20,6 +20,10 @@ func ParseMySql(text string) (t time.Time, err error) {
 	return time.Parse(MYSQL, text)
 }
 
+func ZeroTime(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+}
+
 // parce and convert format
 func ConvertMysql(text string, f func(t time.Time) string) (date string, err error) {
 	t, err := ParseMySql(text)

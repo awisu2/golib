@@ -7,19 +7,31 @@ import (
 	"strings"
 )
 
-// サイトから読み取り、それをテキストで表示する
-func Get2String(url string) (str string, err error) {
+func Get(url string) (bytes []byte, err error) {
 	response, err := http.Get(url)
 	if err != nil {
 		return
 	}
-	byteArray, err := ioutil.ReadAll(response.Body)
+	defer response.Body.Close()
+	return ioutil.ReadAll(response.Body)
+}
+
+func GetHeader(url string) (header http.Header, err error) {
+	response, err := http.Get(url)
 	if err != nil {
 		return
 	}
-	response.Body.Close()
-	str = string(byteArray)
+	defer response.Body.Close()
+	return response.Header, nil
+}
 
+// サイトから読み取り、それをテキストで表示する
+func Get2String(url string) (str string, err error) {
+	byteArray, err := Get(url)
+	if err != nil {
+		return
+	}
+	str = string(byteArray)
 	return
 }
 

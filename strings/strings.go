@@ -23,3 +23,13 @@ func IndexNum(s, sep string, num int) int {
 	}
 	return index
 }
+
+func RuneLen(s string) int {
+	return len([]rune(s))
+}
+
+func RuneSubString(s string, start int, end int) string {
+	r := []rune(s)
+	r = r[start:end]
+	return string(r)
+}

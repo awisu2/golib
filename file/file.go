@@ -62,3 +62,7 @@ func FileInfos(dir string) (fileInfos []os.FileInfo, err error) {
 func Remove(path string) error {
 	return os.Remove(path)
 }
+
+func Rename(oldpath, newpath string) error {
+	return os.Rename(oldpath, newpath)
+}
